@@ -51,6 +51,7 @@ function setup() {
 			tools.set(tool.name, tool);
 			toolDefinitions.push(tool);
 		},
+		registerCommand() {},
 		registerMessageRenderer() {},
 		sendMessage(message: (typeof messages)[number]) {
 			messages.push(message);
@@ -1010,7 +1011,7 @@ test("appends from concurrent Pi processes never merge records", async () => {
 			await import(${JSON.stringify(new URL("./pi-loader.ts", import.meta.url).href)});
 			const { default: posthorse } = await import(${JSON.stringify(new URL("../index.ts", import.meta.url).href)});
 			const tools = new Map();
-			posthorse({ on() {}, registerTool: (tool) => tools.set(tool.name, tool), registerMessageRenderer() {}, sendMessage() {} });
+			posthorse({ on() {}, registerTool: (tool) => tools.set(tool.name, tool), registerCommand() {}, registerMessageRenderer() {}, sendMessage() {} });
 			const [cwd, letter] = process.argv.slice(1);
 			const context = { cwd, newContext() {}, getCompactionSettings: () => ({ enabled: true, reserveTokens: 16_384 }), getContextUsage: () => undefined };
 			for (let i = 0; i < 200; i++) {

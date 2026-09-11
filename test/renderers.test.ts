@@ -22,6 +22,7 @@ function setup() {
 	posthorse({
 		on() {},
 		registerTool: (tool: ToolDefinition) => tools.set(tool.name, tool),
+		registerCommand() {},
 		registerMessageRenderer: (name: string, renderer: MessageRenderer) => messages.set(name, renderer),
 		getActiveTools: () => [...tools.keys()],
 		getAllTools: () => [...tools.values()],

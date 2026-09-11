@@ -769,6 +769,57 @@ export default function (pi: ExtensionAPI) {
 		if (event.messages.some(stale)) return { messages: event.messages.filter((message) => !stale(message)) };
 	});
 
+	// Manual override of the sparse reminder policy: send the same checkpoint reminder on demand.
+	pi.registerCommand("posthorse-remind", {
+		description: "Send the Posthorse checkpoint reminder to the model now, regardless of the reminder budget",
+		handler: async (_args, ctx) => {
+			const native = nativeContext(ctx);
+			const budget = budgetFor(native);
+			if (!budget) {
+				ctx.ui.notify("Posthorse: no context budget is available for the active model.", "error");
+				return;
+			}
+			if (!budget.enabled) {
+				ctx.ui.notify("Posthorse: compaction is disabled, so there is no rollover line to remind about.", "info");
+				return;
+			}
+			if (!budget.supported) {
+				ctx.ui.notify(unsupportedMessage(budget), "error");
+				return;
+			}
+			const usage = native.getContextUsage();
+			if (!usage || usage.tokens == null) {
+				ctx.ui.notify("Posthorse: context usage is not known until the next model response.", "info");
+				return;
+			}
+			if (usage.tokens >= budget.rolloverAt) {
+				ctx.ui.notify("Posthorse: already at the rollover line; Pi will start a fresh context automatically.", "info");
+				return;
+			}
+			const branch = ctx.sessionManager.getBranch() as EntryLike[];
+			const fingerprint: ReminderFingerprint = {
+				windowId: currentWindowId(branch),
+				contextWindow: budget.contextWindow,
+				reserveTokens: budget.reserveTokens,
+			};
+			const remaining = (budget.rolloverAt - usage.tokens).toLocaleString("en-US");
+			if (hasReminder(branch, fingerprint)) {
+				ctx.ui.notify(`Posthorse: a checkpoint reminder is already in this window (${remaining} tokens to rollover).`, "info");
+				return;
+			}
+			pi.sendMessage(
+				{
+					customType: REMINDER_TYPE,
+					content: `[posthorse] Manual checkpoint reminder: ${remaining} tokens remain before Pi's automatic rollover line. Stop normal work, save goal/progress/decisions/next steps, then call new_context now.`,
+					display: true,
+					details: fingerprint,
+				},
+				{ deliverAs: "steer" },
+			);
+			ctx.ui.notify("Posthorse: checkpoint reminder sent to the model.", "info");
+		},
+	});
+
 	// Claim Pi's automatic threshold/overflow trigger with a fresh window: no summary, no summarization auth.
 	(pi as unknown as NativeExtensionAPI).on("session_before_auto_compact", (event, ctx) => {
 		const native = nativeContext(ctx);

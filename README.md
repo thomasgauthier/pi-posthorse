@@ -77,6 +77,8 @@ Only one automatic compaction or rollover policy extension should be enabled at 
 - `notes({ op, ... })`: `list`, `read` (paged; `offset` continues), `write` (empty content clears), `append` (one atomic newline-terminated record), `search` (excerpts centered on the match)
 - `history({ op, ... })`: `search`, `read`; results carry native window ids, reads return stored images with the first page and the next character offset when text remains
 
+Slash command `/posthorse-remind` sends the checkpoint reminder to the model on demand, outside the sparse reminder band. It respects the same budget checks and deduplicates against a reminder already in the window.
+
 In the TUI, tools use Pi's native expandable cards. Collapsed cards show the operation and target, a short content preview, and counts or page ranges with the next offset when more remains. Expand with Pi's tool-output shortcut (`Ctrl+O` by default), or click the card's header or body in fullscreen mode. Expanded cards show the complete returned page and its metadata, not content the tool has not fetched yet. Writes and context requests also show the submitted content or handoff.
 
 Committed context-window messages and checkpoint reminders are compact, expandable cards too. The `new_context` tool card describes a request; only the committed context-window message says a fresh window has started.
