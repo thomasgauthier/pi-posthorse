@@ -814,7 +814,7 @@ export default function (pi: ExtensionAPI) {
 					display: true,
 					details: fingerprint,
 				},
-				{ deliverAs: "steer" },
+				{ triggerTurn: true, deliverAs: "steer" },
 			);
 			ctx.ui.notify("Posthorse: checkpoint reminder sent to the model.", "info");
 		},
